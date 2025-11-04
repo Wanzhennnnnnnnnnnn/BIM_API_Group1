@@ -69,7 +69,7 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
                     ApplyMaterialToComponentTypes(doc, concreteMatId, componentCategories, BuiltInParameter.STRUCTURAL_MATERIAL_PARAM);
 
                     // --- 步驟 3: 應用材質到系統族群 (牆、樓板) ---
-                    ApplyMaterialToSystemTypes(doc, concreteMatId, BuiltInCategory.OST_Walls);  // 牆
+                    ApplyMaterialToSystemTypes(doc, concreteMatId, BuiltInCategory.OST_WallsStructure);  // 牆
                     ApplyMaterialToSystemTypes(doc, concreteMatId, BuiltInCategory.OST_Floors); // 樓板
 
                     // --- 步驟 4: 應用材質到鋼筋 (Rebar) ---
