@@ -53,8 +53,9 @@
 
         <!-- 按鈕 -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-            <Button x:Name="OkButton" Content="開始擷取" Width="100" Height="30" Margin="0,0,10,0" IsDefault="True" Click="OkButton_Click" Background="#007ACC" Foreground="White"/>
-            <Button x:Name="CancelButton" Content="取消" Width="80" Height="30" IsCancel="True" Click="CancelButton_Click"/>
+            <Button x:Name="CalculateButton" Content="計算" Width="50" Height="30" Margin="0,0,10,0"  IsCancel="True" Click="CalculateButton_Click"/>
+            <Button x:Name="OkButton" Content="開始擷取" Width="70" Height="30" Margin="0,0,10,0" IsDefault="True" Click="OkButton_Click" Background="#007ACC" Foreground="White"/>
+            <Button x:Name="CancelButton" Content="取消" Width="50" Height="30" IsCancel="True" Click="CancelButton_Click"/>
         </StackPanel>
     </Grid>
 </Window>
