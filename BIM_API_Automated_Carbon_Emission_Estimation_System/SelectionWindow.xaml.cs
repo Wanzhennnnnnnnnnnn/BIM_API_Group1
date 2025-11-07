@@ -287,7 +287,7 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
 
                 List<BuiltInCategory> hostCategories = new List<BuiltInCategory>
                 {
-                    BuiltInCategory.OST_Walls
+                    BuiltInCategory.OST_Walls,
                     BuiltInCategory.OST_Floors,
                     BuiltInCategory.OST_StructuralColumns,
                     BuiltInCategory.OST_StructuralFraming,
