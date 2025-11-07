@@ -1,13 +1,14 @@
 ﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Structure;
-using Autodesk.Revit.DB.Visual;
 using Autodesk.Revit.UI;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Windows; // 引用 WPF
+using System.Data.SqlClient;
 
 namespace BIM_API_Automated_Carbon_Emission_Estimation_System
 {
@@ -17,7 +18,11 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
     public partial class SelectionWindow : Window
     {
         private Document _doc;
-
+        private List<ExtractedCarbonData> _extractedData = new List<ExtractedCarbonData>();
+        private const string CarbonDbConnectionString =
+    "Data Source=(LocalDB)\\MSSQLLocalDB;" +
+    "AttachDbFilename=\"C:\\Users\\417\\Documents\\BIM_API_Group1\\BIM_API_Automated_Carbon_Emission_Estimation_System\\group1DB.mdf\";" +
+    "Integrated Security=True;";
         /// <param name="doc">當前的 Revit Document</param>
         public SelectionWindow(Document doc)
         {
@@ -79,28 +84,32 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
                 };
 
                 // 3. 執行擷取
-                List<ExtractedCarbonData> extractedData = new List<ExtractedCarbonData>();
+                _extractedData.Clear(); // 清空舊資料
+                List<ExtractedCarbonData> extractedDataTemp = new List<ExtractedCarbonData>();
+                // List<ExtractedCarbonData> extractedData = new List<ExtractedCarbonData>();
 
                 if (categoryFilters[BuiltInCategory.OST_Walls])
-                    ExtractHostData(_doc, BuiltInCategory.OST_Walls, extractedData, "牆", selectedLevelIds);
+                    ExtractHostData(_doc, BuiltInCategory.OST_Walls, extractedDataTemp, "牆", selectedLevelIds);
 
                 if (categoryFilters[BuiltInCategory.OST_Floors])
-                    ExtractHostData(_doc, BuiltInCategory.OST_Floors, extractedData, "樓板", selectedLevelIds);
+                    ExtractHostData(_doc, BuiltInCategory.OST_Floors, extractedDataTemp, "樓板", selectedLevelIds);
 
                 if (categoryFilters[BuiltInCategory.OST_StructuralColumns])
-                    ExtractComponentData(_doc, BuiltInCategory.OST_StructuralColumns, extractedData, "結構柱", selectedLevelIds);
+                    ExtractComponentData(_doc, BuiltInCategory.OST_StructuralColumns, extractedDataTemp, "結構柱", selectedLevelIds);
 
                 if (categoryFilters[BuiltInCategory.OST_StructuralFraming])
-                    ExtractComponentData(_doc, BuiltInCategory.OST_StructuralFraming, extractedData, "結構梁", selectedLevelIds);
+                    ExtractComponentData(_doc, BuiltInCategory.OST_StructuralFraming, extractedDataTemp, "結構梁", selectedLevelIds);
 
                 if (categoryFilters[BuiltInCategory.OST_Rebar])
-                    ExtractRebarData(_doc, extractedData, selectedLevelIds);
+                    ExtractRebarData(_doc, extractedDataTemp, selectedLevelIds);
+
+                _extractedData = extractedDataTemp;
 
                 // 4. 顯示報告
-                ShowReport(extractedData);
+                ShowReport(_extractedData);
 
                 // 5. 關閉 UI 視窗
-                this.Close();
+                // this.Close();
             }
             catch (Exception ex)
             {
@@ -522,6 +531,138 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
             mainDialog.MainContent = sb.ToString();
             mainDialog.Show();
         }
+
+        /// <summary>
+        /// "快速計算" 按鈕點擊事件 - 執行碳排計算
+        /// </summary>
+        private void CalculateButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_extractedData == null || _extractedData.Count == 0)
+            {
+                // 1. 若未先篩選到元件則回傳錯誤
+                TaskDialog.Show("快速計算錯誤", "請先點擊「開始擷取」按鈕以載入元件資料。");
+                return;
+            }
+
+            // 儲存計算結果
+            List<CalculatedCarbonData> carbonResults = new List<CalculatedCarbonData>();
+
+            // 建立材質名稱到係數的對應字典，避免重複查詢資料庫
+            Dictionary<string, double> carbonCoefficientCache = new Dictionary<string, double>();
+
+            // 2. 連接資料庫並執行比對/計算
+            try
+            {
+                // 建立連接物件
+                using (SqlConnection connection = new SqlConnection(CarbonDbConnectionString))
+                {
+                    connection.Open();
+
+                    // 遍歷所有擷取到的元件
+                    foreach (var data in _extractedData)
+                    {
+                        // 檢查快取中是否已有該材質的碳排係數
+                        if (!carbonCoefficientCache.ContainsKey(data.MaterialName))
+                        {
+                            // 執行 SQL 查詢
+                            string sql = "SELECT kgCO2e FROM dbo.carbon WHERE name = @material AND unit = @unit";
+                            using (SqlCommand command = new SqlCommand(sql, connection))
+                            {
+                                command.Parameters.AddWithValue("@material", data.MaterialName);
+                                // 處理單位，由於牆/樓板有 m3 & m2，我們僅比對 m3/kg
+                                string dbUnit = (data.Unit == "m³" || data.Unit == "m³ & m²") ? "m³" : data.Unit;
+                                command.Parameters.AddWithValue("@unit", dbUnit);
+
+                                object result = command.ExecuteScalar(); // 執行查詢並返回第一行第一列的值
+
+                                double coefficient = (result != null && result != DBNull.Value) ? Convert.ToDouble(result) : 0.0;
+                                carbonCoefficientCache.Add(data.MaterialName, coefficient); // 存入快取
+                            }
+                        }
+
+                        // 3. 計算碳排係數並匯出
+                        double finalCoefficient = carbonCoefficientCache[data.MaterialName];
+                        double carbonEmission_kgco2e = 0;
+                        double quantity = 0;
+                        string usedUnit = "";
+
+                        if (finalCoefficient > 0)
+                        {
+                            if (data.Unit == "m³" || data.Unit == "m³ & m²")
+                            {
+                                // 混凝土類主要使用體積
+                                quantity = data.Volume_m3;
+                                carbonEmission_kgco2e = quantity * finalCoefficient;
+                                usedUnit = "m³";
+                            }
+                            else if (data.Unit == "kg")
+                            {
+                                // 鋼筋類主要使用重量
+                                quantity = data.Weight_kg;
+                                carbonEmission_kgco2e = quantity * finalCoefficient;
+                                usedUnit = "kg";
+                            }
+
+                            // 記錄結果
+                            carbonResults.Add(new CalculatedCarbonData
+                            {
+                                ElementId = data.ElementId,
+                                Category = data.Category,
+                                TypeName = data.TypeName,
+                                MaterialName = data.MaterialName,
+                                Quantity = quantity,
+                                UsedUnit = usedUnit,
+                                Coefficient = finalCoefficient,
+                                CarbonEmission_kgCO2e = Math.Round(carbonEmission_kgco2e, 2)
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // 資料庫連線或查詢錯誤
+                TaskDialog.Show("資料庫錯誤", $"碳排計算失敗，請檢查資料庫連線：{ex.Message}");
+                return;
+            }
+
+            // 4. 顯示新的彈窗報告
+            ShowCarbonReport(carbonResults);
+        }
+
+        /// <summary>
+        /// 顯示碳排計算結果的彈窗報告
+        /// </summary>
+        private void ShowCarbonReport(List<CalculatedCarbonData> carbonResults)
+        {
+            if (carbonResults.Count == 0)
+            {
+                TaskDialog.Show("快速計算報告", "在資料庫中，沒有找到任何符合材質和單位的碳排係數。", TaskDialogCommonButtons.Close);
+                return;
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"已計算 {carbonResults.Count} 筆元件的碳排放。");
+
+            // 計算總碳排放
+            double totalCarbon = carbonResults.Sum(c => c.CarbonEmission_kgCO2e);
+            sb.AppendLine($"\n**總碳排放量: {Math.Round(totalCarbon, 2)} kgCO2e**");
+
+            sb.AppendLine("\n--- (前 50 筆詳細列表) ---");
+            sb.AppendLine("ID\t | 材質名稱\t | 數量\t | 單位\t | 係數\t | 碳排放 (kgCO2e)");
+            sb.AppendLine("--------------------------------------------------------------------------------------------------");
+
+            foreach (var data in carbonResults.Take(50))
+            {
+                sb.AppendLine($"{data.ElementId}\t | {data.MaterialName}\t | {data.Quantity}\t | {data.UsedUnit}\t | {data.Coefficient}\t | {data.CarbonEmission_kgCO2e}");
+            }
+
+            TaskDialog mainDialog = new TaskDialog("BIM 碳排放計算報告");
+            mainDialog.MainInstruction = "快速計算完成";
+            mainDialog.MainContent = sb.ToString();
+            mainDialog.Show();
+        }
+
     }
 
     /// <summary>
@@ -537,5 +678,21 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
         public double Area_m2 { get; set; }   // 平方公尺
         public double Weight_kg { get; set; } // 公斤
         public string Unit { get; set; }      // 數據的主要計算單位
+    }
+
+
+    /// <summary>
+    /// 用於儲存碳排計算結果的輔助類別
+    /// </summary>
+    public class CalculatedCarbonData
+    {
+        public string ElementId { get; set; }
+        public string Category { get; set; }
+        public string TypeName { get; set; }
+        public string MaterialName { get; set; }
+        public double Quantity { get; set; }      // 使用的數量 (m3 或 kg)
+        public string UsedUnit { get; set; }      // 使用的單位 (m³ 或 kg)
+        public double Coefficient { get; set; }   // 碳排係數
+        public double CarbonEmission_kgCO2e { get; set; } // 計算出的碳排放量 (kgCO2e)
     }
 }
