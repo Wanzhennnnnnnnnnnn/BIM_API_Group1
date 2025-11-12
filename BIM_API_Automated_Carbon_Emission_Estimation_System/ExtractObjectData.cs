@@ -7,10 +7,6 @@ using System.Windows; // 引用 WPF
 
 namespace BIM_API_Automated_Carbon_Emission_Estimation_System
 {
-    /// <summary>
-    /// 啟動「資料擷取互動介面」的外部指令 (IExternalCommand)。
-    /// 這就是 Add-In Manager 要尋找的「門鈴」。
-    /// </summary>
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
     public class ExtractObjectData : IExternalCommand
