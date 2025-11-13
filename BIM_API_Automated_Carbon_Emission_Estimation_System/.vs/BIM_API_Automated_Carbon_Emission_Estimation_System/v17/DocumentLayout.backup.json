@@ -96,13 +96,11 @@
               "RelativeToolTip": "SelectionWindow.xaml.cs",
 <<<<<<< HEAD
               "ViewState": "AgIAADkAAAAAAAAAAAAIwAoAAAAcAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-07T06:40:39.105Z",
 =======
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAE8AAAA9AAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAZAAAAAAAAAA==",
+>>>>>>> f8d7af572f91ed590c006e49c0fe234c79925401
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-11-04T08:11:28.161Z",
->>>>>>> f8d7af572f91ed590c006e49c0fe234c79925401
               "EditorCaption": ""
             },
             {
@@ -166,11 +164,7 @@
               "ToolTip": "C:\\Users\\417\\Documents\\BIM_API_Group1\\BIM_API_Automated_Carbon_Emission_Estimation_System\\SelectionWindow.xaml",
               "RelativeToolTip": "SelectionWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-<<<<<<< HEAD
-              "WhenOpened": "2025-11-04T08:07:15.706Z",
-=======
               "WhenOpened": "2025-11-04T08:11:21.859Z",
->>>>>>> f8d7af572f91ed590c006e49c0fe234c79925401
               "EditorCaption": ""
             }
           ]
