@@ -52,19 +52,12 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
                     }
 
                     // 2) 柱、梁 -> 混凝土
-                    ApplyMaterialToComponentTypes(
-                        doc,
-                        concreteMatId,
-                        new List<BuiltInCategory> {
-                            BuiltInCategory.OST_StructuralColumns,
-                            BuiltInCategory.OST_StructuralFraming
-                        },
-                        BuiltInParameter.STRUCTURAL_MATERIAL_PARAM
-                    );
+                    ApplyMaterialToFramingAndColumns_TypeAndInstance(doc, concreteMatId);
 
-                    // 3) 牆 / 樓板 -> 混凝土（第一個結構層）
+                    // 3) 牆 / 樓板 / 天花板 -> 混凝土（第一個結構層）
                     ApplyMaterialToSystemTypes(doc, concreteMatId, BuiltInCategory.OST_Walls);
                     ApplyMaterialToSystemTypes(doc, concreteMatId, BuiltInCategory.OST_Floors);
+                    ApplyMaterialToSystemTypes(doc, concreteMatId, BuiltInCategory.OST_Ceilings);
 
                     // 4) 鋼筋 -> SD280W
                     ApplyMaterialToRebarTypes(doc, rebarMatId);
@@ -88,6 +81,68 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
             Overwrite,  // 直接覆蓋既有材質
             Ask         // 跳對話框詢問
         }
+
+        /// <summary>
+        /// 對「結構柱 / 結構梁」同時嘗試：
+        /// 1) 類型層級（FamilySymbol）設定 STRUCTURAL_MATERIAL_PARAM 與 MATERIAL_ID_PARAM
+        /// 2) 實體層級（FamilyInstance）設定 STRUCTURAL_MATERIAL_PARAM 與 MATERIAL_ID_PARAM
+        /// 任何一個槽位可寫就設定，確保「結構材料」能反映在 UI。
+        /// </summary>
+        private void ApplyMaterialToFramingAndColumns_TypeAndInstance(Document doc, ElementId materialId)
+        {
+            var targetCats = new List<BuiltInCategory> {
+        BuiltInCategory.OST_StructuralColumns,
+        BuiltInCategory.OST_StructuralFraming
+    };
+            var catFilter = new ElementMulticategoryFilter(targetCats);
+
+            // --- 類型層級：FamilySymbol ---
+            var symbols = new FilteredElementCollector(doc)
+                .OfClass(typeof(FamilySymbol))
+                .WherePasses(catFilter)
+                .Cast<FamilySymbol>();
+
+            foreach (var symbol in symbols)
+            {
+                TrySetMaterial(symbol, BuiltInParameter.STRUCTURAL_MATERIAL_PARAM, materialId);
+                TrySetMaterial(symbol, BuiltInParameter.MATERIAL_ID_PARAM, materialId);
+            }
+
+            // --- 實體層級：FamilyInstance ---
+            var instances = new FilteredElementCollector(doc)
+                .OfClass(typeof(FamilyInstance))
+                .WherePasses(catFilter)
+                .Cast<FamilyInstance>();
+
+            foreach (var inst in instances)
+            {
+                // 先試專用的「結構材料」槽位
+                if (!TrySetMaterial(inst, BuiltInParameter.STRUCTURAL_MATERIAL_PARAM, materialId))
+                {
+                    // 若族把材質做成一般材質欄位或沒有專用槽位，再嘗試一般材質槽位
+                    TrySetMaterial(inst, BuiltInParameter.MATERIAL_ID_PARAM, materialId);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 嘗試把 materialId 寫入指定元素的指定內建參數，能寫就回傳 true、不能寫/不存在回傳 false。
+        /// </summary>
+        private bool TrySetMaterial(Element elem, BuiltInParameter bip, ElementId materialId)
+        {
+            try
+            {
+                Parameter p = elem.get_Parameter(bip);
+                if (p == null || p.IsReadOnly) return false;
+                if (materialId == null || materialId == ElementId.InvalidElementId) return false;
+                return p.Set(materialId);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         /// <summary>
         /// 確保材質存在；若已存在可選擇是否覆蓋（覆蓋目前只示範更新 MaterialClass，可擴充外觀/物理資產）
         /// </summary>
@@ -241,16 +296,37 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
                 .OfClass(typeof(RebarBarType))
                 .Cast<RebarBarType>();
 
+            int ok = 0, fail = 0;
+            List<string> failed = new List<string>();
+
             foreach (var barType in rebarTypes)
             {
                 try
                 {
-                    var p = barType.get_Parameter(BuiltInParameter.STRUCTURAL_MATERIAL_PARAM);
-                    if (p != null && !p.IsReadOnly && materialId != null && materialId != ElementId.InvalidElementId)
-                        p.Set(materialId);
+                    Parameter matParam = barType.get_Parameter(BuiltInParameter.MATERIAL_ID_PARAM);
+
+                    if (matParam != null && !matParam.IsReadOnly && materialId != null && materialId != ElementId.InvalidElementId)
+                    {
+                        matParam.Set(materialId);
+                        ok++;
+                    }
+                    else
+                    {
+                        fail++;
+                        failed.Add(barType.Name);
+                    }
                 }
-                catch { /* 忽略不可改的型別 */ }
+                catch
+                {
+                    fail++;
+                    failed.Add(barType.Name);
+                }
             }
+
+            //if (fail > 0)
+            //{
+            //    TaskDialog.Show("鋼筋材質更新", $"已更新：{ok} 個鋼筋型別\n未更新：{fail} 個\n未更新清單：\n- {string.Join("\n- ", failed.Distinct())}");
+            //}
         }
     }
 }
