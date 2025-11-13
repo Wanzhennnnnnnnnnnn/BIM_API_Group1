@@ -14,3 +14,8 @@
 # User-specific files
 *.rej
 *.user
+*.json
+
+git rm --cached -- *\.mdf
+git rm --cached -- *\.suo
+git rm -r --cached .vs/
