@@ -1,0 +1,16 @@
+# Visual Studio 
+.vs/
+*.sln.docstates
+*.suo
+
+# Build artifacts
+[Bb]in/
+[Oo]bj/
+
+# Database files
+*.mdf
+*.ldf
+
+# User-specific files
+*.rej
+*.user
