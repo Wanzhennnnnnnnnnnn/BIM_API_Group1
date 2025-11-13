@@ -98,3 +98,8 @@ packages/
 # 如果您在上面廣泛忽略了某些類型的檔案，但希望保留特定檔案，請使用 !
 # 例如：如果您希望保留 appsettings.json
 # !appsettings*.json
+
+# 針對 .vs/ 目錄內所有內容，告訴 Git 假設它們永遠不會變更
+git update-index --assume-unchanged BIM_API_Automated_Carbon_Emission_Estimation_System/.vs/BIM_API_Automated_Carbon_Emission_Estimation_System/v17.suo
+git update-index --assume-unchanged BIM_API_Automated_Carbon_Emission_Estimation_System/.vs/BIM_API_Automated_Carbon_Emission_Estimation_System/v17/DocumentLayout.backup.json
+git update-index --assume-unchanged BIM_API_Automated_Carbon_Emission_Estimation_System/.vs/BIM_API_Automated_Carbon_Emission_Estimation_System/v17/DocumentLayout.json
