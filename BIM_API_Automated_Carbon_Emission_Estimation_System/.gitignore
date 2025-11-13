@@ -1,21 +1,100 @@
-# Visual Studio 
-.vs/
-*.sln.docstates
-*.suo
+#------------------------------------------------------------------------------#
+# Visual Studio / .NET 專案標準忽略模板 (基於 GitHub 官方版本)
+#------------------------------------------------------------------------------#
 
-# Build artifacts
+## 1. 建置產物 (Build Results)
+
+# 排除 bin/ 和 obj/ 目錄下的所有內容
 [Bb]in/
 [Oo]bj/
 
-# Database files
+# 排除封裝產生的 NuGet 包
+*.nupkg
+# 排除 Web 專案的 Web.config 或 app.config 轉換檔
+*.config.transform
+
+# 排除建置暫存檔
+*.bak
+*.cache
+*.pdb
+*.dll
+*.exe
+
+# 排除 Visual Studio 測試結果目錄
+TestResults/
+_ReSharper.*/
+*.[Rr]esharper/
+[Tt]emp/
+
+## 2. Visual Studio 檔案
+
+# 排除 VS 使用者選項檔
+*.suo
+
+# 排除 VS 隱藏目錄下的所有內容 (如您圖片中出現的 .json 檔案就在此)
+.vs/
+
+# 排除方案檔相關
+*.sln.docstates
+*.vsp
+*.vspx
+*.vsmdi
+*.local
+*.user
+
+# 排除舊版 VS 專案暫存檔案
+*.aps
+*.ncb
+*.pdb
+*.opensdf
+*.sdf
+*.tlog
+
+## 3. NuGet 相關
+
+# 排除 NuGet 包所在的目錄 (通常在專案根目錄或用戶資料夾)
+packages/
+# 排除 .nuget 目錄下的暫存/還原資訊
+.nuget/NuGetScratch/
+.nuget/*.txt
+.nuget/*.targets
+
+## 4. 資料庫與發布
+
+# 排除資料庫檔案 (解決您 .mdf 的問題)
 *.mdf
 *.ldf
+*.ndf
+*.publish.xml
 
-# User-specific files
-*.rej
+# 排除 Web 發布設定檔
+*.publishsettings
+
+## 5. IDE 與環境設定
+
+# 排除 ReSharper 相關
+*_i.c
+*_p.c
+*.[Rr]eSharper
+*.[Rr]eSharper/
+
+# 排除 JetBrains Rider IDE 相關
+.idea/
+
+# 排除 VS Code 相關
+.vscode/
+
+# 排除 Log 檔案
+*.log
+[Ll]og/
+[Tt]emp[Ll]og/
+
+# 排除使用者客製化檔案
 *.user
-*.json
+*.rej
+*.json # 廣泛排除所有 JSON，如果某些 JSON 需要保留，請在最底部新增例外
 
-git rm --cached -- *\.mdf
-git rm --cached -- *\.suo
-git rm -r --cached .vs/
+## 6. 例外與覆蓋 (選填)
+# 如果您在上面廣泛忽略了某些類型的檔案，但希望保留特定檔案，請使用 !
+# 例如：如果您希望保留 appsettings.json
+# !appsettings*.json
