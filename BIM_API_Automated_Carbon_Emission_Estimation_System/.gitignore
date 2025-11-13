@@ -103,3 +103,14 @@ packages/
 git update-index --assume-unchanged BIM_API_Automated_Carbon_Emission_Estimation_System/.vs/BIM_API_Automated_Carbon_Emission_Estimation_System/v17.suo
 git update-index --assume-unchanged BIM_API_Automated_Carbon_Emission_Estimation_System/.vs/BIM_API_Automated_Carbon_Emission_Estimation_System/v17/DocumentLayout.backup.json
 git update-index --assume-unchanged BIM_API_Automated_Carbon_Emission_Estimation_System/.vs/BIM_API_Automated_Carbon_Emission_Estimation_System/v17/DocumentLayout.json
+
+# 解除所有 .mdf 和 .ldf 資料庫檔案的追蹤 (如 group1DB.mdf)
+git rm --cached -- *.mdf
+git rm --cached -- *.ldf
+
+# 解除所有 .suo 檔案的追蹤
+git rm --cached -- *.suo
+
+# 解除 obj 和 bin 目錄下所有內容的追蹤 (即使您看不到，也執行一次確保徹底)
+git rm -r --cached obj/
+git rm -r --cached bin/
