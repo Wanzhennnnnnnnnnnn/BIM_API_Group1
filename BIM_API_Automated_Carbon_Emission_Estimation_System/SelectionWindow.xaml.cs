@@ -3,26 +3,25 @@ using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.UI;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using System.Data.SqlClient; // 您的 using
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Windows; // 引用 WPF
-using System.Data.SqlClient;
+using System.Windows;
+// using System.Data.SqlClient; // (重複了，移到上方)
 
 namespace BIM_API_Automated_Carbon_Emission_Estimation_System
 {
-    /// <summary>
     /// SelectionWindow.xaml 的互動邏輯
-    /// </summary>
     public partial class SelectionWindow : Window
     {
         private Document _doc;
         private List<ExtractedCarbonData> _extractedData = new List<ExtractedCarbonData>();
         private const string CarbonDbConnectionString =
     "Data Source=(LocalDB)\\MSSQLLocalDB;" +
-    "AttachDbFilename=\"C:\\Users\\417\\Documents\\BIM_API_Group1\\BIM_API_Automated_Carbon_Emission_Estimation_System\\group1DB.mdf\";" +
+    "AttachDbFilename=\"C:\\Users\\417\\Documents\\BIM_API_Group1\\BIM_API_Automated_Carbon_Emission_System\\group1DB.mdf\";" +
     "Integrated Security=True;";
+
         /// <param name="doc">當前的 Revit Document</param>
         public SelectionWindow(Document doc)
         {
@@ -52,9 +51,7 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
             }
         }
 
-        /// <summary>
         /// "取消" 按鈕點擊事件
-        /// </summary>
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
@@ -62,6 +59,7 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
 
         /// <summary>
         /// "開始擷取" 按鈕點擊事件
+        /// ** (已修正：改為呼叫 ExtractRebarData) **
         /// </summary>
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
@@ -86,10 +84,9 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
                 // 3. 執行擷取
                 _extractedData.Clear(); // 清空舊資料
                 List<ExtractedCarbonData> extractedDataTemp = new List<ExtractedCarbonData>();
-                // List<ExtractedCarbonData> extractedData = new List<ExtractedCarbonData>();
 
                 if (categoryFilters[BuiltInCategory.OST_Walls])
-                    ExtractHostData(_doc, BuiltInCategory.OST_Walls, extractedDataTemp, "牆", selectedLevelIds);
+                    ExtractHostData(_doc, BuiltInCategory.OST_Walls, extractedDataTemp, "結構牆", selectedLevelIds);
 
                 if (categoryFilters[BuiltInCategory.OST_Floors])
                     ExtractHostData(_doc, BuiltInCategory.OST_Floors, extractedDataTemp, "樓板", selectedLevelIds);
@@ -100,16 +97,16 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
                 if (categoryFilters[BuiltInCategory.OST_StructuralFraming])
                     ExtractComponentData(_doc, BuiltInCategory.OST_StructuralFraming, extractedDataTemp, "結構梁", selectedLevelIds);
 
+                // ** 修正 **
+                // 錯誤：ExtractComponentData(_doc, BuiltInCategory.OST_Rebar, ...);
+                // 正確：
                 if (categoryFilters[BuiltInCategory.OST_Rebar])
-                    ExtractRebarData(_doc, extractedDataTemp, selectedLevelIds);
+                    ExtractRebarData(_doc, extractedDataTemp, selectedLevelIds); // 呼叫正確的鋼筋擷取方法
 
                 _extractedData = extractedDataTemp;
 
                 // 4. 顯示報告
                 ShowReport(_extractedData);
-
-                // 5. 關閉 UI 視窗
-                // this.Close();
             }
             catch (Exception ex)
             {
@@ -117,29 +114,26 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
             }
         }
 
-
-        // -------------------------------------------------------------------
-        // 以下是從 IExternalCommand 搬移過來的擷取邏輯
-        // -------------------------------------------------------------------
-
-        /// <summary>
         /// 建立一個樓層篩選器 (LogicalOrFilter)
-        /// ** (已修正：使用正確的內建參數) **
-        /// </summary>
+        /// ** (已修正：牆使用 ELEM_LEVEL_PARAM) **
         private ElementFilter CreateLevelFilter(List<ElementId> levelIds)
         {
             if (levelIds == null || levelIds.Count == 0)
-                return null; // 如果沒有選擇樓層，則不過濾
+                return null;
 
             IList<ElementFilter> levelFilters = new List<ElementFilter>();
 
             foreach (ElementId levelId in levelIds)
             {
-                // 篩選 "Level" 參數 (適用於 牆、樓板等)
-                // **修正：使用 ELEM_LEVEL_PARAM**
-                var providerWall = new ParameterValueProvider(new ElementId(BuiltInParameter.SCHEDULE_LEVEL_PARAM));
+                // 篩選 "Level" 參數 (適用於 牆)
+                var providerWall = new ParameterValueProvider(new ElementId(BuiltInParameter.WALL_BASE_CONSTRAINT));
                 var ruleWall = new FilterElementIdRule(providerWall, new FilterNumericEquals(), levelId);
                 levelFilters.Add(new ElementParameterFilter(ruleWall));
+
+                // 篩選 "Level" 參數 (適用於樓板)
+                var providerFloor = new ParameterValueProvider(new ElementId(BuiltInParameter.LEVEL_PARAM));
+                var ruleFloor = new FilterElementIdRule(providerFloor, new FilterNumericEquals(), levelId);
+                levelFilters.Add(new ElementParameterFilter(ruleFloor));
 
                 // 篩選 "Base Constraint" / "SCHEDULE_LEVEL_PARAM" (適用於 柱)
                 var providerBase = new ParameterValueProvider(new ElementId(BuiltInParameter.SCHEDULE_LEVEL_PARAM));
@@ -152,20 +146,17 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
                 levelFilters.Add(new ElementParameterFilter(ruleRef));
             }
 
-            // 將所有規則用 "OR" 組合起來 (只要符合任一樓層即可)
             return new LogicalOrFilter(levelFilters);
         }
 
-        /// <summary>
+
         /// 擷取系統族群 (Host Objects) 如 牆 和 樓板 的資料
-        /// </summary>
         private void ExtractHostData(Document doc, BuiltInCategory category, List<ExtractedCarbonData> dataList, string categoryName, List<ElementId> levelIds)
         {
             var collector = new FilteredElementCollector(doc)
                 .OfCategory(category)
                 .WhereElementIsNotElementType();
 
-            // 應用樓層篩選
             ElementFilter levelFilter = CreateLevelFilter(levelIds);
             if (levelFilter != null)
                 collector.WherePasses(levelFilter);
@@ -193,14 +184,13 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
                         }
                     }
                 }
-                catch { /* 忽略 */ }
+                catch { }
 
                 if (materialId != ElementId.InvalidElementId)
                 {
                     materialName = (doc.GetElement(materialId) as Material)?.Name ?? "N/A";
                 }
 
-                // **使用 Revit 2021+ (UnitTypeId) 語法**
                 double volume_ft3 = elem.get_Parameter(BuiltInParameter.HOST_VOLUME_COMPUTED).AsDouble();
                 double volume_m3 = UnitUtils.Convert(volume_ft3, UnitTypeId.CubicFeet, UnitTypeId.CubicMeters);
 
@@ -220,16 +210,14 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
             }
         }
 
-        /// <summary>
         /// 擷取元件族群 (Component) 如 柱 和 梁 的資料
-        /// </summary>
+        /// ** (已修正：備用材質參數) **
         private void ExtractComponentData(Document doc, BuiltInCategory category, List<ExtractedCarbonData> dataList, string categoryName, List<ElementId> levelIds)
         {
             var collector = new FilteredElementCollector(doc)
                 .OfCategory(category)
                 .WhereElementIsNotElementType();
 
-            // 應用樓層篩選
             ElementFilter levelFilter = CreateLevelFilter(levelIds);
             if (levelFilter != null)
                 collector.WherePasses(levelFilter);
@@ -249,8 +237,7 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
                     materialId = inst.Symbol.get_Parameter(BuiltInParameter.STRUCTURAL_MATERIAL_PARAM)?.AsElementId();
                     if (materialId == null || materialId == ElementId.InvalidElementId)
                     {
-                        // **修正：備用參數應為 MATERIAL_PARAM**
-                        materialId = inst.Symbol.get_Parameter(BuiltInParameter.STRUCTURAL_MATERIAL_PARAM)?.AsElementId();
+                        materialId = inst.Symbol.get_Parameter(BuiltInParameter.MATERIAL_ID_PARAM)?.AsElementId();
                     }
                 }
                 catch { /* 忽略 */ }
@@ -260,7 +247,6 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
                     materialName = (doc.GetElement(materialId) as Material)?.Name ?? "N/A";
                 }
 
-                // **使用 Revit 2021+ (UnitTypeId) 語法**
                 double volume_ft3 = elem.get_Parameter(BuiltInParameter.HOST_VOLUME_COMPUTED).AsDouble();
                 double volume_m3 = UnitUtils.Convert(volume_ft3, UnitTypeId.CubicFeet, UnitTypeId.CubicMeters);
 
@@ -276,14 +262,14 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
             }
         }
 
+
+        // --- (方法已重新加入) ---
         /// <summary>
         /// 專門擷取 鋼筋 (Rebar) 的資料
-        /// ** (已更新：使用 GetRebarWeight_kg 備援系統來計算重量) **
         /// </summary>
         private void ExtractRebarData(Document doc, List<ExtractedCarbonData> dataList, List<ElementId> levelIds)
         {
             // 1. 獲取所有鋼筋 (包含在群組中的)
-            //    (GetAllRebarElements 是我們在下面新增的輔助方法)
             List<Rebar> allRebars = GetAllRebarElements(doc);
 
             // 2. 獲取樓層篩選器 (如果有的話)
@@ -304,36 +290,34 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
                 };
                 ElementMulticategoryFilter hostCatFilter = new ElementMulticategoryFilter(hostCategories);
 
-                // 找到所有在這些樓層上的 "宿主" 元素
                 hostIdsOnLevel = new FilteredElementCollector(doc)
                     .WherePasses(hostCatFilter)
                     .WherePasses(levelFilter)
                     .ToElementIds()
-                    .ToHashSet(); // 使用 HashSet 以加速查詢
+                    .ToHashSet();
             }
 
             // 3. 遍歷所有鋼筋
             foreach (Rebar rebar in allRebars)
             {
                 // 3a. 應用樓層篩選
-                if (hostIdsOnLevel != null) // 檢查是否需要篩選樓層
+                if (hostIdsOnLevel != null)
                 {
                     try
                     {
-                        // 獲取鋼筋的宿主 ID
                         ElementId hostId = rebar.GetHostId();
                         if (hostId == null || !hostIdsOnLevel.Contains(hostId))
                         {
-                            continue; // 如果宿主不在指定樓層上，則跳過此鋼筋
+                            continue;
                         }
                     }
                     catch (Exception)
                     {
-                        continue; // 獲取宿主失敗，跳過
+                        continue;
                     }
                 }
 
-                // 3b. (同原邏輯) 擷取資料
+                // 3b. 擷取資料
                 RebarBarType barType = doc.GetElement(rebar.GetTypeId()) as RebarBarType;
                 if (barType == null) continue;
 
@@ -350,7 +334,6 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
                 }
                 catch { /* 忽略 */ }
 
-                // **更新：呼叫新的備援方法來計算重量**
                 double totalWeight_kg = GetRebarWeight_kg(rebar, barType, doc);
 
                 dataList.Add(new ExtractedCarbonData
@@ -365,14 +348,14 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
             }
         }
 
+        // --- (方法已重新加入) ---
         /// <summary>
-        /// (新方法) 取得鋼筋重量 (kg)，具備三階段備援系統。
+        /// 取得鋼筋重量 (kg)，具備相容於舊版 API (RVT 2021 及更早) 的備援系統。
         /// </summary>
         private double GetRebarWeight_kg(Rebar rebar, RebarBarType barType, Document doc)
         {
             double totalWeight_lbs = 0;
 
-            // 獲取總長度 (內部單位: ft)
             double totalLength_ft = rebar.get_Parameter(BuiltInParameter.REBAR_ELEM_TOTAL_LENGTH).AsDouble();
             if (totalLength_ft == 0) return 0;
 
@@ -380,7 +363,6 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
             Parameter wpl_Param_String = barType.LookupParameter("Bar Weight/Length");
             if (wpl_Param_String != null && wpl_Param_String.HasValue && wpl_Param_String.AsDouble() > 0)
             {
-                // 單位: (ft) * (lbs/ft) = lbs
                 totalWeight_lbs = totalLength_ft * wpl_Param_String.AsDouble();
             }
             else
@@ -388,12 +370,10 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
                 // --- 備援 2: 手動物理計算 (Volume * Density) (使用舊版 API) ---
                 try
                 {
-                    // 1. 計算體積 (ft³)
                     double diameter_ft = barType.BarNominalDiameter;
                     double area_ft2 = Math.PI * Math.Pow(diameter_ft / 2.0, 2.0);
                     double volume_ft3 = totalLength_ft * area_ft2;
 
-                    // 2. 獲取材料密度 (lb/ft³) - (使用舊版 API)
                     double density_lb_per_ft3 = 0;
                     ElementId materialId = barType.get_Parameter(BuiltInParameter.STRUCTURAL_MATERIAL_PARAM)?.AsElementId();
                     if (materialId != null && materialId != ElementId.InvalidElementId)
@@ -404,50 +384,45 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
                             ElementId sAssetId = mat.StructuralAssetId;
                             if (sAssetId != ElementId.InvalidElementId)
                             {
-                                // 舊版 API (RVT 2021 及更早) 的用法
                                 PropertySetElement pset = doc.GetElement(sAssetId) as PropertySetElement;
                                 if (pset != null)
                                 {
                                     StructuralAsset sAsset = pset.GetStructuralAsset();
-                                    density_lb_per_ft3 = sAsset.Density; // 直接獲取 double 屬性
+                                    density_lb_per_ft3 = sAsset.Density;
                                 }
                             }
                         }
                     }
 
-                    // 3. 計算重量
                     if (density_lb_per_ft3 > 0)
                     {
-                        // 單位: (ft³) * (lb/ft³) = lbs
                         totalWeight_lbs = volume_ft3 * density_lb_per_ft3;
                     }
                 }
                 catch (Exception ex)
                 {
                     Debug.Print($"計算鋼筋重量失敗 (ID: {rebar.Id}): {ex.Message}");
-                    totalWeight_lbs = 0; // 計算失敗
+                    totalWeight_lbs = 0;
                 }
             }
 
-            // 最後才進行單位換算
             if (totalWeight_lbs > 0)
             {
                 return UnitUtils.Convert(totalWeight_lbs, UnitTypeId.PoundsMass, UnitTypeId.Kilograms);
             }
 
-            return 0; // 所有方法都失敗
+            return 0;
         }
 
-
+        // --- (方法已重新加入) ---
         /// <summary>
-        /// (新方法) 獲取專案中所有的 Rebar 元素，包含在群組中的。
+        /// 獲取專案中所有的 Rebar 元素，包含在群組中的。
         /// </summary>
         private List<Rebar> GetAllRebarElements(Document doc)
         {
             List<Rebar> rebarList = new List<Rebar>();
             HashSet<ElementId> processedIds = new HashSet<ElementId>();
 
-            // 1. 獲取所有獨立的 Rebar
             foreach (Rebar rebar in new FilteredElementCollector(doc).OfClass(typeof(Rebar)).WhereElementIsNotElementType().Cast<Rebar>())
             {
                 if (processedIds.Add(rebar.Id))
@@ -456,7 +431,6 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
                 }
             }
 
-            // 2. 遞迴獲取群組中的 Rebar
             var groups = new FilteredElementCollector(doc)
                 .OfClass(typeof(Group))
                 .WhereElementIsNotElementType()
@@ -470,24 +444,24 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
             return rebarList;
         }
 
+        // --- (方法已重新加入) ---
         /// <summary>
-        /// (新方法) 遞迴輔助方法：從群組及其巢狀群組中獲取 Rebar。
+        /// 遞迴輔助方法：從群組及其巢狀群組中獲取 Rebar。
         /// </summary>
         private void GetRebarFromGroup(Document doc, Group group, List<Rebar> rebarList, HashSet<ElementId> processedIds)
         {
-            // 獲取群組的 "直接" 成員
             foreach (ElementId memberId in group.GetMemberIds())
             {
                 Element member = doc.GetElement(memberId);
 
                 if (member is Rebar rebar)
                 {
-                    if (processedIds.Add(rebar.Id)) // 僅在尚未處理過時才加入
+                    if (processedIds.Add(rebar.Id))
                     {
                         rebarList.Add(rebar);
                     }
                 }
-                else if (member is Group nestedGroup) // 處理巢狀群組 (遞迴)
+                else if (member is Group nestedGroup)
                 {
                     GetRebarFromGroup(doc, nestedGroup, rebarList, processedIds);
                 }
@@ -539,48 +513,37 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
         {
             if (_extractedData == null || _extractedData.Count == 0)
             {
-                // 1. 若未先篩選到元件則回傳錯誤
                 TaskDialog.Show("快速計算錯誤", "請先點擊「開始擷取」按鈕以載入元件資料。");
                 return;
             }
 
-            // 儲存計算結果
             List<CalculatedCarbonData> carbonResults = new List<CalculatedCarbonData>();
-
-            // 建立材質名稱到係數的對應字典，避免重複查詢資料庫
             Dictionary<string, double> carbonCoefficientCache = new Dictionary<string, double>();
 
-            // 2. 連接資料庫並執行比對/計算
             try
             {
-                // 建立連接物件
                 using (SqlConnection connection = new SqlConnection(CarbonDbConnectionString))
                 {
                     connection.Open();
 
-                    // 遍歷所有擷取到的元件
                     foreach (var data in _extractedData)
                     {
-                        // 檢查快取中是否已有該材質的碳排係數
                         if (!carbonCoefficientCache.ContainsKey(data.MaterialName))
                         {
-                            // 執行 SQL 查詢
                             string sql = "SELECT kgCO2e FROM dbo.carbon WHERE name = @material AND unit = @unit";
                             using (SqlCommand command = new SqlCommand(sql, connection))
                             {
                                 command.Parameters.AddWithValue("@material", data.MaterialName);
-                                // 處理單位，由於牆/樓板有 m3 & m2，我們僅比對 m3/kg
                                 string dbUnit = (data.Unit == "m³" || data.Unit == "m³ & m²") ? "m³" : data.Unit;
                                 command.Parameters.AddWithValue("@unit", dbUnit);
 
-                                object result = command.ExecuteScalar(); // 執行查詢並返回第一行第一列的值
+                                object result = command.ExecuteScalar();
 
                                 double coefficient = (result != null && result != DBNull.Value) ? Convert.ToDouble(result) : 0.0;
-                                carbonCoefficientCache.Add(data.MaterialName, coefficient); // 存入快取
+                                carbonCoefficientCache.Add(data.MaterialName, coefficient);
                             }
                         }
 
-                        // 3. 計算碳排係數並匯出
                         double finalCoefficient = carbonCoefficientCache[data.MaterialName];
                         double carbonEmission_kgco2e = 0;
                         double quantity = 0;
@@ -590,20 +553,17 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
                         {
                             if (data.Unit == "m³" || data.Unit == "m³ & m²")
                             {
-                                // 混凝土類主要使用體積
                                 quantity = data.Volume_m3;
                                 carbonEmission_kgco2e = quantity * finalCoefficient;
                                 usedUnit = "m³";
                             }
                             else if (data.Unit == "kg")
                             {
-                                // 鋼筋類主要使用重量
                                 quantity = data.Weight_kg;
                                 carbonEmission_kgco2e = quantity * finalCoefficient;
                                 usedUnit = "kg";
                             }
 
-                            // 記錄結果
                             carbonResults.Add(new CalculatedCarbonData
                             {
                                 ElementId = data.ElementId,
@@ -621,12 +581,10 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
             }
             catch (Exception ex)
             {
-                // 資料庫連線或查詢錯誤
                 TaskDialog.Show("資料庫錯誤", $"碳排計算失敗，請檢查資料庫連線：{ex.Message}");
                 return;
             }
 
-            // 4. 顯示新的彈窗報告
             ShowCarbonReport(carbonResults);
         }
 
@@ -644,7 +602,6 @@ namespace BIM_API_Automated_Carbon_Emission_Estimation_System
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"已計算 {carbonResults.Count} 筆元件的碳排放。");
 
-            // 計算總碳排放
             double totalCarbon = carbonResults.Sum(c => c.CarbonEmission_kgCO2e);
             sb.AppendLine($"\n**總碳排放量: {Math.Round(totalCarbon, 2)} kgCO2e**");
 
