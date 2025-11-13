@@ -7,30 +7,8 @@
       "RelativeMoniker": "D:0:0:{D58047E3-0595-4E05-B198-63A01A565EC3}|BIM_API_Automated_Carbon_Emission_Estimation_System.csproj|solutionrelative:setorchangematerials.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{D58047E3-0595-4E05-B198-63A01A565EC3}|BIM_API_Automated_Carbon_Emission_Estimation_System.csproj|C:\\Users\\417\\Documents\\BIM_API_Group1\\BIM_API_Automated_Carbon_Emission_Estimation_System\\selectionwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "AbsoluteMoniker": "D:0:0:{D58047E3-0595-4E05-B198-63A01A565EC3}|BIM_API_Automated_Carbon_Emission_Estimation_System.csproj|c:\\users\\417\\documents\\bim_api_group1\\bim_api_automated_carbon_emission_estimation_system\\selectionwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
       "RelativeMoniker": "D:0:0:{D58047E3-0595-4E05-B198-63A01A565EC3}|BIM_API_Automated_Carbon_Emission_Estimation_System.csproj|solutionrelative:selectionwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D58047E3-0595-4E05-B198-63A01A565EC3}|BIM_API_Automated_Carbon_Emission_Estimation_System.csproj|C:\\Users\\417\\Documents\\BIM_API_Group1\\BIM_API_Automated_Carbon_Emission_Estimation_System\\ExtractObjectData.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D58047E3-0595-4E05-B198-63A01A565EC3}|BIM_API_Automated_Carbon_Emission_Estimation_System.csproj|solutionrelative:ExtractObjectData.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\417\\Documents\\BIM_API_Group1\\BIM_API_Automated_Carbon_Emission_Estimation_System\\dbo.carbon.data.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:dbo.carbon.data.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D58047E3-0595-4E05-B198-63A01A565EC3}|BIM_API_Automated_Carbon_Emission_Estimation_System.csproj|C:\\Users\\417\\Documents\\BIM_API_Group1\\BIM_API_Automated_Carbon_Emission_Estimation_System\\selectionwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D58047E3-0595-4E05-B198-63A01A565EC3}|BIM_API_Automated_Carbon_Emission_Estimation_System.csproj|solutionrelative:selectionwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|ViewDataWindow_MSSQL__/_LocalDB__MSSQLLocalDB/C__USERS_417_DOCUMENTS_BIM_API_GROUP1_BIM_API_AUTOMATED_CARBON_EMISSION_ESTIMATION_SYSTEM_GROUP1DB.MDF/True/SqlTable/dbo.carbon.sql||{0058A1F7-65F3-4DB9-B3D0-CA7E64DD73CD}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\417\\AppData\\Local\\Temp\\dbo.carbon.data.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\417\\Documents\\BIM_API_Group1\\BIM_API_Automated_Carbon_Emission_Estimation_System\\dbo.carbon.data.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:dbo.carbon.data.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame"
     }
   ],
   "DocumentGroupContainers": [
@@ -40,65 +18,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 0,
           "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "dbo.carbon.data.sql",
-              "DocumentMoniker": "C:\\Users\\417\\AppData\\Local\\Temp\\dbo.carbon.data.sql",
-              "RelativeDocumentMoniker": "..\\..\\..\\AppData\\Local\\Temp\\dbo.carbon.data.sql",
-              "ToolTip": "C:\\Users\\417\\AppData\\Local\\Temp\\dbo.carbon.data.sql",
-              "RelativeToolTip": "..\\..\\..\\AppData\\Local\\Temp\\dbo.carbon.data.sql",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
-              "WhenOpened": "2025-11-07T07:52:00.489Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "dbo.carbon.sql",
-              "DocumentMoniker": "ViewDataWindow_MSSQL__/_LocalDB__MSSQLLocalDB/C__USERS_417_DOCUMENTS_BIM_API_GROUP1_BIM_API_AUTOMATED_CARBON_EMISSION_ESTIMATION_SYSTEM_GROUP1DB.MDF/True/SqlTable/dbo.carbon.sql",
-              "ToolTip": "ViewDataWindow_MSSQL__/_LocalDB__MSSQLLocalDB/C__USERS_417_DOCUMENTS_BIM_API_GROUP1_BIM_API_AUTOMATED_CARBON_EMISSION_ESTIMATION_SYSTEM_GROUP1DB.MDF/True/SqlTable/dbo.carbon.sql",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
-              "WhenOpened": "2025-11-07T06:28:03.502Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "SelectionWindow.xaml.cs",
-              "DocumentMoniker": "C:\\Users\\417\\Documents\\BIM_API_Group1\\BIM_API_Automated_Carbon_Emission_Estimation_System\\SelectionWindow.xaml.cs",
-              "RelativeDocumentMoniker": "SelectionWindow.xaml.cs",
-              "ToolTip": "C:\\Users\\417\\Documents\\BIM_API_Group1\\BIM_API_Automated_Carbon_Emission_Estimation_System\\SelectionWindow.xaml.cs",
-              "RelativeToolTip": "SelectionWindow.xaml.cs",
-              "ViewState": "AgIAADkAAAAAAAAAAAAIwAoAAAAcAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-07T06:40:39.105Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "dbo.carbon.data.sql ",
-              "DocumentMoniker": "C:\\Users\\417\\Documents\\BIM_API_Group1\\BIM_API_Automated_Carbon_Emission_Estimation_System\\dbo.carbon.data.sql",
-              "RelativeDocumentMoniker": "dbo.carbon.data.sql",
-              "ToolTip": "dbo.carbon.data.sql ",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
-              "WhenOpened": "2025-11-07T06:34:07.922Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "ExtractObjectData.cs",
-              "DocumentMoniker": "C:\\Users\\417\\Documents\\BIM_API_Group1\\BIM_API_Automated_Carbon_Emission_Estimation_System\\ExtractObjectData.cs",
-              "RelativeDocumentMoniker": "ExtractObjectData.cs",
-              "ToolTip": "C:\\Users\\417\\Documents\\BIM_API_Group1\\BIM_API_Automated_Carbon_Emission_Estimation_System\\ExtractObjectData.cs",
-              "RelativeToolTip": "ExtractObjectData.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAARAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-04T08:07:10.292Z",
-              "EditorCaption": ""
-            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
@@ -107,9 +28,9 @@
               "RelativeDocumentMoniker": "SetOrChangeMaterials.cs",
               "ToolTip": "C:\\Users\\417\\Documents\\BIM_API_Group1\\BIM_API_Automated_Carbon_Emission_Estimation_System\\SetOrChangeMaterials.cs",
               "RelativeToolTip": "SetOrChangeMaterials.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAA9AAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-04T08:07:31.35Z",
+              "WhenOpened": "2025-11-13T06:16:22.249Z",
               "EditorCaption": ""
             },
             {
@@ -121,7 +42,7 @@
               "ToolTip": "C:\\Users\\417\\Documents\\BIM_API_Group1\\BIM_API_Automated_Carbon_Emission_Estimation_System\\SelectionWindow.xaml",
               "RelativeToolTip": "SelectionWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2025-11-04T08:07:15.706Z",
+              "WhenOpened": "2025-11-13T06:16:19.499Z",
               "EditorCaption": ""
             }
           ]
